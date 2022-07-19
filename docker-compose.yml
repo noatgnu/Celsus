@@ -1,0 +1,50 @@
+version: "3"
+
+services:
+  database:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile-database
+    container_name: database
+    environment:
+      - POSTGRES_PASSWORD=postgrespw
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data/postgres:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - celsus-net
+  backend:
+    tty: true
+    stdin_open: true
+    restart: always
+    environment:
+      - Database=postgresql://postgres:postgrespw@database:5432/projects
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - 8000:8000
+    volumes:
+      - ./data/celsus:/app/data
+    networks:
+      - celsus-net
+    depends_on:
+      - database
+    command: python main.py
+  cache:
+    image: redis:latest
+    volumes:
+      -  ./data/redis:/app/data
+    ports:
+      - 6379:6379
+    networks:
+      - celsus-net
+networks:
+  celsus-net:

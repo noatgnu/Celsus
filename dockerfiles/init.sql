@@ -1,0 +1,2 @@
+CREATE DATABASE projects;
+GRANT ALL PRIVILEGES ON DATABASE projects TO postgres;

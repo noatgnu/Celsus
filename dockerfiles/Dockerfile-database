@@ -1,0 +1,12 @@
+FROM postgres:latest
+LABEL maintainer="tphung001@dundee.ac.uk"
+
+LABEL \
+      org.label-schema.name="Celsus" \
+      org.label-schema.description="Docker container for Celsus" \
+      org.label-schema.version="$DOCKER_IMAGE_VERSION" \
+      org.label-schema.vcs-url="https://github.com/noatgnu/Celsus" \
+      org.label-schema.schema-version="1.0"
+
+COPY init.sql /docker-entrypoint-initdb.db/
+
