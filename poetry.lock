@@ -348,14 +348,6 @@ pymysql = ["pymysql (<1)", "pymysql"]
 sqlcipher = ["sqlcipher3-binary"]
 
 [[package]]
-name = "sqlalchemy-paginator"
-version = "0.2"
-description = "Paginator for SQLAlchemy ORM"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -418,7 +410,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b8c9f9d05504a87d97d78cd0ce82e72e8f0da660ae356c5b7860a20e5f07460a"
+content-hash = "f956628239314b936ec83dc7ee01d87609a235e53edb232b98f4bdcc8e79ea6f"
 
 [metadata.files]
 aioredis = [
@@ -780,10 +772,6 @@ sqlalchemy = [
     {file = "SQLAlchemy-1.4.39-cp39-cp39-win32.whl", hash = "sha256:d1f665e50592caf4cad3caed3ed86f93227bffe0680218ccbb293bd5a6734ca8"},
     {file = "SQLAlchemy-1.4.39-cp39-cp39-win_amd64.whl", hash = "sha256:8b773c9974c272aae0fa7e95b576d98d17ee65f69d8644f9b6ffc90ee96b4d19"},
     {file = "SQLAlchemy-1.4.39.tar.gz", hash = "sha256:8194896038753b46b08a0b0ae89a5d80c897fb601dd51e243ed5720f1f155d27"},
-]
-sqlalchemy-paginator = [
-    {file = "SQLAlchemy-Paginator-0.2.tar.gz", hash = "sha256:fabb8fd28904a161252f2afa733e2a10ca0ded4556b36f93f481f605c5fa8948"},
-    {file = "SQLAlchemy_Paginator-0.2-py2-none-any.whl", hash = "sha256:9c3690d24a20867ab4151ca3d52e60dc3f085fbe13729e09687aaa1ac66d85c8"},
 ]
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
