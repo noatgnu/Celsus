@@ -25,8 +25,9 @@ RUN git clone https://github.com/noatgnu/Celsus.git
 WORKDIR /app/src/Celsus
 
 RUN pip install --no-cache-dir -r requirements.txt
-
-RUN alembic upgrade head
+RUN sed -i -r "s|localhost|database|" /app/src/Celsus/alembic.ini
 
 VOLUME ["/app/data"]
+
+CMD ["alembic", "upgrade", "head"]
 
