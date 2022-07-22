@@ -25,6 +25,8 @@ services:
     restart: always
     environment:
       - Database=postgresql://postgres:postgrespw@database:5432/projects
+      - MongoDB=mongodb://root:mongo-celsus@mongo/
+      - REDIS_HOST=redis://redis
     build:
       context: ./dockerfiles
       dockerfile: Dockerfile
@@ -40,6 +42,7 @@ services:
       - mongo
     command: python main.py
   mongo:
+    container_name: mongo
     image: mongo
     restart: always
     volumes:
@@ -57,11 +60,12 @@ services:
       timeout: 10s
       retries: 5
   cache:
+    container_name: redis
     image: redis:latest
     volumes:
       -  ./data/redis:/app/data
     ports:
-      - 6379:6379
+      - "6379:6379"
     networks:
       - celsus-net
 networks:
