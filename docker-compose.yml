@@ -40,7 +40,7 @@ services:
     depends_on:
       - database
       - mongo
-    command: python main.py
+    command: bash -c "alembic upgrade head && python main.py"
   mongo:
     container_name: mongo
     image: mongo

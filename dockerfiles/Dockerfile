@@ -29,5 +29,3 @@ RUN sed -i -r "s|localhost|database|" /app/src/Celsus/alembic.ini
 
 VOLUME ["/app/data"]
 
-CMD ["alembic", "upgrade", "head"]
-

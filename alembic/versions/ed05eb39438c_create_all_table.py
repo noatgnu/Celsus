@@ -78,6 +78,30 @@ def upgrade() -> None:
                                             ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id', name='sampleAnnotation_pkey')
                     )
+    op.create_table('file',
+                    sa.Column('id', sa.INTEGER(), server_default=sa.text("nextval('file_id_seq'::regclass)"),
+                              autoincrement=True, nullable=False),
+                    sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
+                    sa.Column('fileType', sa.VARCHAR(), autoincrement=False, nullable=False),
+                    sa.Column('project_id', sa.INTEGER(), autoincrement=False, nullable=True),
+                    sa.ForeignKeyConstraint(['project_id'], ['project.id'], name='file_project_id_fkey',
+                                            ondelete='CASCADE'),
+                    sa.PrimaryKeyConstraint('id', name='file_pkey'),
+                    postgresql_ignore_search_path=False
+                    )
+    op.create_table('comparison',
+                    sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
+                    sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
+                    sa.Column('fcColumn', sa.VARCHAR(), autoincrement=False, nullable=False),
+                    sa.Column('significantColumn', sa.VARCHAR(), autoincrement=False, nullable=False),
+                    sa.Column('project_id', sa.INTEGER(), autoincrement=False, nullable=True),
+                    sa.Column('file_id', sa.INTEGER(), autoincrement=False, nullable=True),
+                    sa.ForeignKeyConstraint(['file_id'], ['file.id'], name='comparison_file_id_fkey',
+                                            ondelete='CASCADE'),
+                    sa.ForeignKeyConstraint(['project_id'], ['project.id'], name='comparison_project_id_fkey',
+                                            ondelete='CASCADE'),
+                    sa.PrimaryKeyConstraint('id', name='comparison_pkey')
+                    )
     op.create_table('differentialAnalysisData',
                     sa.Column('id', sa.INTEGER(),
                               server_default=sa.text('nextval(\'"differentialAnalysisData_id_seq"\'::regclass)'),
@@ -118,6 +142,20 @@ def upgrade() -> None:
                                             ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id', name='disease_pkey')
                     )
+    op.create_table('sampleColumn',
+                    sa.Column('id', sa.INTEGER(),
+                              server_default=sa.text('nextval(\'"sampleColumn_id_seq"\'::regclass)'),
+                              autoincrement=True, nullable=False),
+                    sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
+                    sa.Column('columnType', sa.VARCHAR(), autoincrement=False, nullable=False),
+                    sa.Column('file_id', sa.INTEGER(), autoincrement=False, nullable=True),
+                    sa.Column('comparison_id', sa.INTEGER(), autoincrement=False, nullable=True),
+                    sa.ForeignKeyConstraint(['comparison_id'], ['comparison.id'],
+                                            name='sampleColumn_comparison_id_fkey', ondelete='CASCADE'),
+                    sa.ForeignKeyConstraint(['file_id'], ['file.id'], name='sampleColumn_file_id_fkey',
+                                            ondelete='CASCADE'),
+                    sa.PrimaryKeyConstraint('id', name='sampleColumn_pkey')
+                    )
     op.create_table('rawData',
                     sa.Column('id', sa.INTEGER(), server_default=sa.text('nextval(\'"rawData_id_seq"\'::regclass)'),
                               autoincrement=True, nullable=False),
@@ -140,17 +178,7 @@ def upgrade() -> None:
                                             ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id', name='quantificationMethod_pkey')
                     )
-    op.create_table('file',
-                    sa.Column('id', sa.INTEGER(), server_default=sa.text("nextval('file_id_seq'::regclass)"),
-                              autoincrement=True, nullable=False),
-                    sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
-                    sa.Column('fileType', sa.VARCHAR(), autoincrement=False, nullable=False),
-                    sa.Column('project_id', sa.INTEGER(), autoincrement=False, nullable=True),
-                    sa.ForeignKeyConstraint(['project_id'], ['project.id'], name='file_project_id_fkey',
-                                            ondelete='CASCADE'),
-                    sa.PrimaryKeyConstraint('id', name='file_pkey'),
-                    postgresql_ignore_search_path=False
-                    )
+
     op.create_table('keyword',
                     sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
                     sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
@@ -169,33 +197,8 @@ def upgrade() -> None:
                                             ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id', name='author_pkey')
                     )
-    op.create_table('sampleColumn',
-                    sa.Column('id', sa.INTEGER(),
-                              server_default=sa.text('nextval(\'"sampleColumn_id_seq"\'::regclass)'),
-                              autoincrement=True, nullable=False),
-                    sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
-                    sa.Column('columnType', sa.VARCHAR(), autoincrement=False, nullable=False),
-                    sa.Column('file_id', sa.INTEGER(), autoincrement=False, nullable=True),
-                    sa.Column('comparison_id', sa.INTEGER(), autoincrement=False, nullable=True),
-                    sa.ForeignKeyConstraint(['comparison_id'], ['comparison.id'],
-                                            name='sampleColumn_comparison_id_fkey', ondelete='CASCADE'),
-                    sa.ForeignKeyConstraint(['file_id'], ['file.id'], name='sampleColumn_file_id_fkey',
-                                            ondelete='CASCADE'),
-                    sa.PrimaryKeyConstraint('id', name='sampleColumn_pkey')
-                    )
-    op.create_table('comparison',
-                    sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
-                    sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
-                    sa.Column('fcColumn', sa.VARCHAR(), autoincrement=False, nullable=False),
-                    sa.Column('significantColumn', sa.VARCHAR(), autoincrement=False, nullable=False),
-                    sa.Column('project_id', sa.INTEGER(), autoincrement=False, nullable=True),
-                    sa.Column('file_id', sa.INTEGER(), autoincrement=False, nullable=True),
-                    sa.ForeignKeyConstraint(['file_id'], ['file.id'], name='comparison_file_id_fkey',
-                                            ondelete='CASCADE'),
-                    sa.ForeignKeyConstraint(['project_id'], ['project.id'], name='comparison_project_id_fkey',
-                                            ondelete='CASCADE'),
-                    sa.PrimaryKeyConstraint('id', name='comparison_pkey')
-                    )
+
+
     op.create_table('pi',
                     sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
                     sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=False),
