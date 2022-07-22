@@ -9,7 +9,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=postgrespw
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - ./data/postgres:/var/lib/postgresql
     healthcheck:
@@ -30,14 +30,32 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     ports:
-      - 8000:8000
+      - "8000:8000"
     volumes:
       - ./data/celsus:/app/data
     networks:
       - celsus-net
     depends_on:
       - database
+      - mongo
     command: python main.py
+  mongo:
+    image: mongo
+    restart: always
+    volumes:
+      - /data/mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongo-celsus
+    networks:
+      - celsus-net
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
   cache:
     image: redis:latest
     volumes:

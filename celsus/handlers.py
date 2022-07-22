@@ -26,7 +26,7 @@ from celsus.models import Project, create_project_dict, row2dict, RawData, Diffe
 import pandas as pd
 
 from celsus.pagination import Page
-
+from bson import ObjectId
 temp_cache = dict()
 
 class BaseHandler(RequestHandler, ABC):
@@ -377,23 +377,32 @@ class SearchDifferentialAnalysisHandler(SessionMixin, BaseHandler, ABC):
                     or_(*conditions)
                 )
 
-            filter_condition = []
+            filter_condition_primary = []
+            filter_condition_comparison = []
+            filter_condition_project = []
+            filter_condition_gene = []
             for k in req["filter"]:
                 if len(req["filter"][k]) > 0:
 
                     if k == "primary_id":
-                        filter_condition = filter_condition + [models.DifferentialAnalysisData.primary_id == pid for pid in req["filter"][k]]
+                        filter_condition_primary = filter_condition_primary + [models.DifferentialAnalysisData.primary_id == pid for pid in req["filter"][k]]
 
                     elif k == "comparison_id":
-                        filter_condition = filter_condition + [models.DifferentialAnalysisData.comparison_id == int(compid) for compid in req["filter"][k]]
+                        filter_condition_comparison = filter_condition_comparison + [models.DifferentialAnalysisData.comparison_id == int(compid) for compid in req["filter"][k]]
 
                     elif k == "project_id":
-                        filter_condition = filter_condition + [models.Comparison.project_id == pid for pid in req["filter"][k]]
+                        filter_condition_project = filter_condition_project + [models.Comparison.project_id == pid for pid in req["filter"][k]]
 
                     elif k == "gene_names":
-                        filter_condition = filter_condition + [models.DifferentialAnalysisData.gene_names == pid for pid in req["filter"][k]]
-            if len(filter_condition) > 0:
-                model = model.filter(or_(*filter_condition))
+                        filter_condition_gene = filter_condition_gene + [models.DifferentialAnalysisData.gene_names == pid for pid in req["filter"][k]]
+            if len(filter_condition_primary) > 0:
+                model = model.filter(or_(*filter_condition_primary))
+            if len(filter_condition_project) > 0:
+                model = model.filter(or_(*filter_condition_project))
+            if len(filter_condition_comparison) > 0:
+                model = model.filter(or_(*filter_condition_comparison))
+            if len(filter_condition_gene) > 0:
+                model = model.filter(or_(*filter_condition_gene))
             if req["type"] == "initial search":
                 results["unique_project_ids"] = [r[0] for r in
                                                  model.with_entities(models.Comparison.project_id).distinct().all()]
@@ -612,6 +621,23 @@ class AdminHandler(SessionMixin, BaseHandler, ABC):
             else:
                 self.set_status(405, "Token invalid")
 
+    @gen.coroutine
+    def patch(self):
+        with self.make_session() as session:
+            req = json_decode(self.request.body.decode("utf-8"))
+            access_token = self.request.headers.get("Access-Token")
+            token = yield self.application.redis.get(req["username"])
+            results = {}
+            if token:
+                if token.decode("utf-8") == access_token:
+                    model = session.query(models.Project).filter(or_(*[models.Project.id == i for i in req["project_ids"]]))
+                    for p in model.all():
+                        results[p.id] = True
+                        session.delete(p)
+            session.flush()
+            self.write(results)
+
+
 class RawDataHandler(SessionMixin, BaseHandler, ABC):
     @gen.coroutine
     def post(self):
@@ -633,6 +659,20 @@ class RawDataHandler(SessionMixin, BaseHandler, ABC):
                 .filter(models.RawData.primary_id == primary_id).all()
             self.write({"results": [r.to_dict() for r in result]})
 
+
+class SessionDataHandler(BaseHandler, ABC):
+    @gen.coroutine
+    def get(self, session_id):
+        found = yield self.settings["motor_db"]["session"].find_one({"_id": session_id})
+        found["_id"] = session_id
+        self.write(found)
+
+    @gen.coroutine
+    def post(self):
+        session = json_decode(self.request.body.decode("utf-8"))
+        session["_id"] = str(ObjectId())
+        new_session = yield self.settings["motor_db"]["session"].insert_one(session)
+        self.write({"_id": new_session.inserted_id})
 
 @dataclass
 class Result:
