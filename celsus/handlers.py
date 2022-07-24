@@ -340,7 +340,7 @@ class SearchDifferentialAnalysisHandler(SessionMixin, BaseHandler, ABC):
             prime_model = session.query(models.DifferentialAnalysisData).join(models.Comparison).join(models.Project)
             if not req["ignoreAvailability"]:
                 prime_model = prime_model.filter(models.Project.enable == True)
-            print(primary_ids)
+            print(req)
             if len(primary_ids) == 1:
                 model = prime_model.filter(
                     or_(
@@ -356,6 +356,7 @@ class SearchDifferentialAnalysisHandler(SessionMixin, BaseHandler, ABC):
                 #     model = prime_model.filter(
                 #         or_(*[models.DifferentialAnalysisData.primary_id.like(pid) for pid in primary_ids])
                 #     ).filter(or_(*[models.DifferentialAnalysisData.gene_names.like(pid) for pid in primary_ids]))
+
             elif len(primary_ids) == 0:
                 model = prime_model
                 results["unique_primary_ids"] = [r[0] for r in model.with_entities(
@@ -395,6 +396,7 @@ class SearchDifferentialAnalysisHandler(SessionMixin, BaseHandler, ABC):
 
                     elif k == "gene_names":
                         filter_condition_gene = filter_condition_gene + [models.DifferentialAnalysisData.gene_names == pid for pid in req["filter"][k]]
+            print(filter_condition_gene, filter_condition_comparison, filter_condition_primary, filter_condition_gene)
             if len(filter_condition_primary) > 0:
                 model = model.filter(or_(*filter_condition_primary))
             if len(filter_condition_project) > 0:
@@ -403,6 +405,7 @@ class SearchDifferentialAnalysisHandler(SessionMixin, BaseHandler, ABC):
                 model = model.filter(or_(*filter_condition_comparison))
             if len(filter_condition_gene) > 0:
                 model = model.filter(or_(*filter_condition_gene))
+            print(model)
             if req["type"] == "initial search":
                 results["unique_project_ids"] = [r[0] for r in
                                                  model.with_entities(models.Comparison.project_id).distinct().all()]

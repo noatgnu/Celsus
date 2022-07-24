@@ -27,6 +27,7 @@ services:
       - Database=postgresql://postgres:postgrespw@database:5432/projects
       - MongoDB=mongodb://root:mongo-celsus@mongo/
       - REDIS_HOST=redis://redis
+      - AdminPassword=CelsusAdmin
     build:
       context: ./dockerfiles
       dockerfile: Dockerfile
@@ -40,7 +41,7 @@ services:
     depends_on:
       - database
       - mongo
-    command: bash -c "alembic upgrade head && python main.py"
+    command: bash -c "alembic upgrade head && python celsus/models.py && python main.py"
   mongo:
     container_name: mongo
     image: mongo
