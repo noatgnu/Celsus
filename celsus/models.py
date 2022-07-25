@@ -454,9 +454,14 @@ def update_password(username, password):
 
 def create_user(username, password):
     session = db.sessionmaker()
-    session.add(User(username=username, password=create_password_hash(password)))
-    session.commit()
+    q = session.query(User.id).filter(User.username == username)
+    if session.query(q.exists()).scalar():
+        return False
+    else:
+        session.add(User(username=username, password=create_password_hash(password)))
+        session.commit()
     session.close()
+    return True
 
 if __name__ == "__main__":
     create_all_table()
