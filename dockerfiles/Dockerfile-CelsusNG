@@ -1,7 +1,7 @@
 FROM node:18-bullseye-slim
 LABEL maintainer="tphung001@dundee.ac.uk"
 
-ARG API_HOST=localhost:8000
+ARG API_HOST=celsus-api.proteo.info
 LABEL \
       org.label-schema.name="dQng" \
       org.label-schema.description="Docker container for CelsusNG" \

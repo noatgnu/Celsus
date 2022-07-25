@@ -12,7 +12,7 @@ services:
     volumes:
       - ./data/nginx/templates:/etc/nginx/templates
     networks:
-      - dq-net
+      - celsus-net
     environment:
       - NGINX_HOST=localhost
   database:
