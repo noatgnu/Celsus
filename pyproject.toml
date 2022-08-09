@@ -6,13 +6,13 @@ authors = ["Toan Phung <toan.phungkhoiquoctoan@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-tornado = "^6.1"
+tornado = "^6.2"
 pandas = "^1.4.3"
 SQLAlchemy = "^1.4.39"
 tornado-sqlalchemy = "^0.7.0"
-alembic = "^1.8.0"
+alembic = "^1.8.1"
 psycopg2 = "^2.9.3"
-uniprotparser = "^1.0.1"
+uniprotparser = "^1.0.7"
 bcrypt = "^3.2.2"
 aioredis = "^2.0.1"
 motor = "^3.0.0"

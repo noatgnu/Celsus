@@ -53,7 +53,7 @@ class CelcusApp(Application):
         if sys.platform.startswith("win32"):
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-        super().__init__(routes, **settings)
+        super().__init__(**settings)
 
     def init_with_loop(self, loop):
         self.redis = loop.run_until_complete(
@@ -64,6 +64,11 @@ class CelcusApp(Application):
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = CelcusApp()
+    host = os.getenv("HandlersRoute", r".*")
+    app.add_handlers(
+        host,
+        routes
+    )
     app.listen(options.port)
     loop = asyncio.get_event_loop()
     app.init_with_loop(loop)

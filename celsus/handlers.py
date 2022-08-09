@@ -18,7 +18,7 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 
 from tornado.web import RequestHandler, stream_request_body
 from tornado_sqlalchemy import SessionMixin
-from uniprotparser.parser import UniprotSequence, UniprotParser
+from uniprotparser.betaparser import UniprotSequence, UniprotParser
 
 import settings
 from celsus import models
@@ -706,15 +706,15 @@ def get_uniprot(primary_ids: list[str], redis) -> Result:
         d.rename(columns={d.columns[-1]: "query"}, inplace=True)
         return Result(df=d, queryMap=queryMap)
     parser = UniprotParser(acc, unique=True)
-    df = []
 
-    for res in parser.parse("tab", "post"):
-        yield redis.set(";".join(temp), res, 60*60*24)
+    df = []
+    async for res in parser.parse_async(temp):
         d = pd.read_csv(io.StringIO(res), sep="\t")
         d.rename(columns={d.columns[-1]: "query"}, inplace=True)
         df.append(d)
 
     if len(df) > 1:
+        yield redis.set(";".join(temp), res, 60 * 60 * 24)
         return Result(df=pd.concat(df, ignore_index=True), queryMap=queryMap)
     else:
         return Result(df=df[0], queryMap=queryMap)
