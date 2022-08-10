@@ -270,24 +270,22 @@ class UploadHandler(SessionMixin, BaseHandler, ABC):
 
                     for i in new_df.to_dict('records'):
                         r = RawData(**i)
-                        if r.primary_id in temp_cache:
-                            r.gene_names = temp_cache[r.primary_id]
-                        else:
-                            for p in r.primary_id.split(";"):
-                                a = result.get_accession_from_query(p)
-                                a = a.accession
-                                if a:
-                                    temp = result.df[result.df["query"] == a]
-                                    if type(temp) == pd.Series:
-                                        r.gene_names = temp["Gene names"]
-                                        break
-                                    elif type(temp) == pd.DataFrame:
-                                        if len(temp) > 0:
-                                            for _, r2 in temp.iterrows():
-                                                r.gene_names = r2["Gene names"]
-                                                temp_cache[r.primary_id] = r2["Gene names"]
-                                                break
+
+                        for p in r.primary_id.split(";"):
+                            a = result.get_accession_from_query(p)
+                            a = a.accession
+                            if a:
+                                temp = result.df[result.df["From"] == a]
+                                if type(temp) == pd.Series:
+                                    r.gene_names = temp["Gene Names"]
+                                    break
+                                elif type(temp) == pd.DataFrame:
+                                    if len(temp) > 0:
+                                        for _, r2 in temp.iterrows():
+                                            r.gene_names = r2["Gene Names"]
+                                            temp_cache[r.primary_id] = r2["Gene Names"]
                                             break
+                                        break
                         rawDataList.append(r)
                     c.rawData.extend(rawDataList)
             elif file.fileType == "Differential analysis":
@@ -306,26 +304,23 @@ class UploadHandler(SessionMixin, BaseHandler, ABC):
                     result = yield get_uniprot(new_df["primary_id"], self.application.redis)
                     for i in new_df.to_dict('records'):
                         r = DifferentialAnalysisData(**i)
-                        if r.primary_id in temp_cache:
-                            r.gene_names = temp_cache[r.primary_id]
-                        else:
-                            for p in r.primary_id.split(";"):
-                                a = result.get_accession_from_query(p)
-                                a = a.accession
-                                if a:
-                                    temp = result.df[result.df["query"] == a]
-                                    if type(temp) == pd.Series:
-                                        r.gene_names = temp["Gene names"]
-                                        temp_cache[r.primary_id] = r.gene_names
+                        for p in r.primary_id.split(";"):
+                            a = result.get_accession_from_query(p)
+                            a = a.accession
+                            if a:
+                                temp = result.df[result.df["From"] == a]
+                                if type(temp) == pd.Series:
+                                    r.gene_names = temp["Gene Names"]
+                                    temp_cache[r.primary_id] = r.gene_names
 
-                                        break
-                                    elif type(temp) == pd.DataFrame:
-                                        if len(temp) > 0:
-                                            for _, r2 in temp.iterrows():
-                                                r.gene_names = r2["Gene names"]
-                                                temp_cache[r.primary_id] = r2["Gene names"]
-                                                break
+                                    break
+                                elif type(temp) == pd.DataFrame:
+                                    if len(temp) > 0:
+                                        for _, r2 in temp.iterrows():
+                                            r.gene_names = r2["Gene Names"]
+                                            temp_cache[r.primary_id] = r2["Gene Names"]
                                             break
+                                        break
                         differentialAnalysisList.append(r)
                     comp.differentialAnalysisData.extend(differentialAnalysisList)
 
@@ -703,18 +698,25 @@ def get_uniprot(primary_ids: list[str], redis) -> Result:
     temp_res = yield redis.get(";".join(temp))
     if temp_res:
         d = pd.read_csv(io.StringIO(temp_res.decode("utf-8")), sep="\t")
-        d.rename(columns={d.columns[-1]: "query"}, inplace=True)
+        #d.rename(columns={d.columns[-1]: "query"}, inplace=True)
         return Result(df=d, queryMap=queryMap)
-    parser = UniprotParser(acc, unique=True)
+    parser = UniprotParser()
 
+    df = yield parse_uniprot(parser, temp)
+
+    if len(df) > 1:
+        df = pd.concat(df, ignore_index=True)
+        yield redis.set(";".join(temp), df.to_csv(sep="\t"), 60 * 60 * 24)
+        return Result(df=df, queryMap=queryMap)
+    else:
+        yield redis.set(";".join(temp), df[0].to_csv(sep="\t"), 60 * 60 * 24)
+        return Result(df=df[0], queryMap=queryMap)
+
+
+async def parse_uniprot(parser, temp):
     df = []
     async for res in parser.parse_async(temp):
         d = pd.read_csv(io.StringIO(res), sep="\t")
-        d.rename(columns={d.columns[-1]: "query"}, inplace=True)
+        # d.rename(columns={d.columns[-1]: "query"}, inplace=True)
         df.append(d)
-
-    if len(df) > 1:
-        yield redis.set(";".join(temp), res, 60 * 60 * 24)
-        return Result(df=pd.concat(df, ignore_index=True), queryMap=queryMap)
-    else:
-        return Result(df=df[0], queryMap=queryMap)
+    return df
