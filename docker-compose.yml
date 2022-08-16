@@ -42,7 +42,7 @@ services:
       - MongoDB=mongodb://root:mongo-celsus@mongo/
       - REDIS_HOST=redis://redis
       - AdminPassword=CelsusAdmin
-      - HandlersRoute=(localhost|127\.0\.0\.1|celsus\.proteo\.info)
+      - HandlersRoute=(localhost|127\.0\.0\.1|celsus\.proteo\.info|celsus-api\.proteo\.info)
     build:
       context: ./dockerfiles
       dockerfile: Dockerfile
