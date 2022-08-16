@@ -301,6 +301,7 @@ class UploadHandler(SessionMixin, BaseHandler, ABC):
                     new_df = df[[analysis["primary"].name, analysis["fc"].name, analysis["significant"].name]]
 
                     new_df.rename(columns={analysis["primary"].name: "primary_id", analysis["fc"].name: "foldChange", analysis["significant"].name: "significant"}, inplace=True)
+
                     result = yield get_uniprot(new_df["primary_id"], self.application.redis)
                     for i in new_df.to_dict('records'):
                         r = DifferentialAnalysisData(**i)
@@ -720,3 +721,23 @@ async def parse_uniprot(parser, temp):
         # d.rename(columns={d.columns[-1]: "query"}, inplace=True)
         df.append(d)
     return df
+
+class GetSearchDataHandler(SessionMixin, BaseHandler):
+    @gen.coroutine
+    def post(self):
+        with self.make_session() as session:
+            req = json_decode(self.request.body.decode("utf-8"))
+            results = []
+            print(req)
+            if req["type"] == "project":
+                results = session.query(models.Project).filter(models.Project.title.ilike("%{}%".format(req["term"])))
+                print(results.all())
+            elif req["type"] == "comparison":
+                results = session.query(models.Comparison)
+                if len(req["project"]) > 0:
+                    results = results.filter(or_(*[models.Comparison.project_id == i for i in req["project"]]))
+
+            results = results.limit(10).all()
+
+            results = [i.to_dict() for i in results]
+            self.write({"results": results, "type": req["type"]})

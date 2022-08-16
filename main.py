@@ -13,7 +13,7 @@ from tornado_sqlalchemy import SQLAlchemy
 
 from celsus.handlers import ProjectHandler, UploadHandler, SearchDifferentialAnalysisHandler, FileDownloadHandler, \
     RedisHandler, LoginHandler, AdminHandler, FileColumnHandler, RawDataHandler, DownloadTokenHandler, \
-    SessionDataHandler
+    SessionDataHandler, GetSearchDataHandler
 
 database_url = os.getenv("Database")
 
@@ -36,6 +36,7 @@ routes = [
     (r"/api/download/(.*)/", DownloadTokenHandler),
     (r"/api/session/", SessionDataHandler),
     (r"/api/session/(.*)/", SessionDataHandler),
+    (r"/api/quick/", GetSearchDataHandler)
 ]
 
 
